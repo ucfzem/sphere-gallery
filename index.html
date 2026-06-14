@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spherical Gallery</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0a; color: #fff; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; cursor: grab; user-select: none; }
+  body:active { cursor: grabbing; }
+  #canvas { position: fixed; inset: 0; z-index: 1; display: block; }
+  #grain { position: fixed; inset: 0; z-index: 2; pointer-events: none; mix-blend-mode: overlay; opacity: 0.035; }
+  .header { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: 2rem 3rem; pointer-events: none; }
+  .header__logo { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2em; color: rgba(255,255,255,0.5); }
+  .header__nav { display: flex; gap: 2rem; font-size: 0.7rem; font-weight: 400; letter-spacing: 0.1em; color: rgba(255,255,255,0.25); }
+  .counter { position: fixed; bottom: 2rem; left: 3rem; z-index: 10; font-size: 0.75rem; font-weight: 400; letter-spacing: 0.1em; color: rgba(255,255,255,0.2); font-variant-numeric: tabular-nums; }
+  .label { position: fixed; bottom: 2rem; right: 3rem; z-index: 10; text-align: right; pointer-events: none; }
+  .label__index { font-size: 0.65rem; font-weight: 400; letter-spacing: 0.15em; color: rgba(255,255,255,0.2); margin-bottom: 0.35rem; }
+  .label__title { font-size: 1.1rem; font-weight: 300; letter-spacing: 0.02em; color: rgba(255,255,255,0.85); }
+  .label__sub { font-size: 0.7rem; font-weight: 400; letter-spacing: 0.08em; color: rgba(255,255,255,0.3); margin-top: 0.2rem; }
+  .hint { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 10; font-size: 0.6rem; font-weight: 400; letter-spacing: 0.18em; color: rgba(255,255,255,0.12); text-transform: uppercase; }
+  .overlay { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+  .overlay.active { pointer-events: auto; opacity: 1; }
+  .overlay__inner { width: 100%; max-width: 900px; padding: 2rem; }
+  .overlay__close { background: none; border: none; color: rgba(255,255,255,0.5); font-family: 'Inter', sans-serif; font-size: 0.75rem; letter-spacing: 0.15em; cursor: pointer; padding: 0.5rem 0; margin-bottom: 2rem; transition: color 0.3s; }
+  .overlay__close:hover { color: rgba(255,255,255,0.9); }
+  .overlay__content { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+  .overlay__img { width: 100%; aspect-ratio: 4/3; background: #1a1a1a; border-radius: 4px; overflow: hidden; background-size: cover; background-position: center; }
+  .overlay__text h1 { font-size: 2rem; font-weight: 300; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 1.5rem; color: rgba(255,255,255,0.95); }
+  .overlay__text p { font-size: 0.85rem; font-weight: 300; line-height: 1.7; color: rgba(255,255,255,0.5); margin-bottom: 2rem; }
+  .overlay__tag { display: inline-block; font-size: 0.6rem; font-weight: 500; letter-spacing: 0.2em; color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 0.4rem 0.8rem; border-radius: 2px; }
+  @media (max-width: 768px) {
+    .header { padding: 1.2rem 1.5rem; }
+    .header__nav { display: none; }
+    .counter { left: 1.5rem; bottom: 1.2rem; }
+    .label { right: 1.5rem; bottom: 1.2rem; }
+    .label__title { font-size: 0.9rem; }
+    .hint { display: none; }
+    .overlay__content { grid-template-columns: 1fr; gap: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header__logo">SPHERE</div>
+  <nav class="header__nav"><span>EXHIBITS</span><span>INFO</span><span>CONTACT</span></nav>
+</header>
+
+<div class="counter"><span id="currIdx">01</span> &mdash; <span id="totalCount">12</span></div>
+
+<div class="label">
+  <div class="label__index" id="lblIdx">01</div>
+  <div class="label__title" id="lblTitle">Loading...</div>
+  <div class="label__sub" id="lblSub"></div>
+</div>
+
+<div class="hint">drag to explore &bull; click to enter</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay__inner">
+    <button class="overlay__close" id="closeBtn">&larr; Back</button>
+    <div class="overlay__content">
+      <div class="overlay__img" id="detailImg"></div>
+      <div class="overlay__text">
+        <h1 id="detailTitle"></h1>
+        <p id="detailDesc"></p>
+        <span class="overlay__tag" id="detailTag"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<canvas id="grain"></canvas>
+<canvas id="canvas"></canvas>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.module.js",
+    "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.15.0/+esm"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import gsap from 'gsap';
+
+const DATA = [
+  { title: 'Eternal Void', sub: 'Digital Art', tag: '3D', desc: 'An exploration of infinite space and the beauty of nothingness. This piece invites contemplation of the vast unknown beyond our perception.', colors: ['#0a0a1a','#1a1a2e','#16213e'] },
+  { title: 'Neon Genesis', sub: 'Photography', tag: 'MOTION', desc: 'Urban landscapes transformed through electric light. Capturing the moment when day surrenders to the neon pulse of the city.', colors: ['#1a0a2e','#2d1b69','#11998e'] },
+  { title: 'Concrete Horizons', sub: 'Architecture', tag: '3D', desc: 'Brutalist structures reimagined as monuments to a forgotten future. Geometry meets atmosphere in this brutalist dreamscape.', colors: ['#1a1a1a','#2d2d2d','#4a4a4a'] },
+  { title: 'Liquid Mercury', sub: 'Sculpture', tag: 'EXPERIENCE', desc: 'Fluid forms frozen in time. A study of motion and material, where metal behaves like water and gravity is merely a suggestion.', colors: ['#0d1117','#161b22','#30363d'] },
+  { title: 'Chromatic Aberration', sub: 'Mixed Media', tag: 'WEBSITE', desc: 'When perception fractures and color bleeds beyond boundaries. An immersive journey through the spectrum of distorted reality.', colors: ['#120a1a','#2a0a3a','#4a1a6a'] },
+  { title: 'Zero Gravity', sub: 'Installation', tag: '3D', desc: 'Defying terrestrial bounds in a dance of weightless forms. Each element suspended in perfect equilibrium within the void.', colors: ['#0a1a1a','#0a2a2a','#1a3a3a'] },
+  { title: 'Phantom Signal', sub: 'Audio Visual', tag: 'MOTION', desc: 'Transmissions from the edge of perception. Frequencies beyond human hearing visualized as cascading light architecture.', colors: ['#1a0a0a','#2a1a0a','#3a2a1a'] },
+  { title: 'Digital Petrichor', sub: 'Generative Art', tag: 'AI', desc: 'The scent of rain on dry earth, translated through algorithmic poetry. A computational meditation on natural phenomena.', colors: ['#0a1a0a','#0a2a1a','#1a3a2a'] },
+  { title: 'Obsidian Flow', sub: 'Sculpture', tag: 'EXPERIENCE', desc: 'Volcanic glass frozen in perpetual motion. Light plays across razor-sharp surfaces in an endless display of geological time.', colors: ['#0a0a0a','#1a1a1a','#2a1a1a'] },
+  { title: 'Solar Wind', sub: 'Digital Art', tag: '3D', desc: 'Charged particles from a distant star collide with atmosphere in a symphony of light. The aurora reimagined through computational lens.', colors: ['#0a1a2e','#1a2a4e','#2a3a6e'] },
+  { title: 'Terminal Velocity', sub: 'Film', tag: 'MOTION', desc: 'The final moment before impact, stretched into eternity. A meditation on speed, momentum, and the beauty of inevitable collisions.', colors: ['#1a0a0a','#2a1a1a','#1a1a2a'] },
+  { title: 'Quantum Bloom', sub: 'Generative Art', tag: 'AI', desc: 'Flowers that exist in all states simultaneously. A botanical garden from a parallel universe where physics follows different rules.', colors: ['#0a0a1a','#1a0a2e','#2a0a4e'] },
+];
+
+// === THREE.JS ===
+const canvas = document.getElementById('canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(0, 0, 0);
+
+// --- environment sphere ---
+const envCanvas = document.createElement('canvas');
+envCanvas.width = 1024; envCanvas.height = 512;
+const ectx = envCanvas.getContext('2d');
+const grad = ectx.createLinearGradient(0, 0, 0, 512);
+grad.addColorStop(0, '#0c0c1a');
+grad.addColorStop(0.5, '#08080a');
+grad.addColorStop(1, '#0a0a12');
+ectx.fillStyle = grad;
+ectx.fillRect(0, 0, 1024, 512);
+// subtle texture
+for (let i = 0; i < 300; i++) {
+  ectx.fillStyle = `rgba(255,255,255,${Math.random()*0.015})`;
+  ectx.fillRect(Math.random()*1024, Math.random()*512, 1, 1);
+}
+const envTex = new THREE.CanvasTexture(envCanvas);
+envTex.wrapS = THREE.RepeatWrapping;
+envTex.wrapT = THREE.ClampToEdgeWrapping;
+const envMat = new THREE.MeshBasicMaterial({ map: envTex, side: THREE.BackSide });
+const envMesh = new THREE.Mesh(new THREE.SphereGeometry(45, 64, 48), envMat);
+scene.add(envMesh);
+
+// --- starfield (points on inner sphere) ---
+const starCount = 2500;
+const starPos = new Float32Array(starCount * 3);
+for (let i = 0; i < starCount; i++) {
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.acos(2 * Math.random() - 1);
+  const r = 44;
+  starPos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+  starPos[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+  starPos[i*3+2] = r * Math.cos(phi);
+}
+const starGeo = new THREE.BufferGeometry();
+starGeo.setAttribute('position', new THREE.BufferAttribute(starPos, 3));
+const starMat = new THREE.PointsMaterial({ color: 0x404060, size: 0.07, transparent: true, opacity: 0.35, sizeAttenuation: true });
+const stars = new THREE.Points(starGeo, starMat);
+scene.add(stars);
+
+// --- card group ---
+const group = new THREE.Group();
+scene.add(group);
+
+const R = 12, CW = 3.2, CH = 4.2;
+
+function makeTexture(colors, w=512, h=384) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, w, h);
+  colors.forEach((col, i) => g.addColorStop(i/(colors.length-1), col));
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, w, h);
+  for (let i = 0; i < 8; i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random()*w, Math.random()*h, Math.random()*60+15, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.04})`;
+    ctx.fill();
+  }
+  for (let i = 0; i < 30; i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random()*w, Math.random()*h, Math.random()*2+0.3, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.12})`;
+    ctx.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.needsUpdate = true;
+  return t;
+}
+
+const cardMeshes = [];
+const floats = [];
+const lats = [-0.35, 0, 0.35];
+let di = 0;
+
+for (let row = 0; row < 3 && di < DATA.length; row++) {
+  const lat = lats[row];
+  const n = row === 1 ? DATA.length : 8;
+  const step = (Math.PI*2)/n;
+  for (let i = 0; i < n && di < DATA.length; i++) {
+    const lon = i*step + (row%2)*step*0.5;
+    const x = R*Math.cos(lat)*Math.sin(lon);
+    const y = R*Math.sin(lat);
+    const z = R*Math.cos(lat)*Math.cos(lon);
+    const d = DATA[di];
+
+    // card
+    const tex = makeTexture(d.colors);
+    const mesh = new THREE.Mesh(new THREE.PlaneGeometry(CW, CH), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true }));
+    mesh.position.set(x, y, z);
+    mesh.lookAt(0,0,0);
+    mesh.rotateZ((Math.random()-0.5)*0.06);
+    mesh.userData = { idx: di, title: d.title, sub: d.sub, tag: d.tag, desc: d.desc, colors: d.colors };
+    group.add(mesh);
+    cardMeshes.push(mesh);
+
+    // border
+    const edge = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.PlaneGeometry(CW, CH)),
+      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.06 })
+    );
+    edge.position.copy(mesh.position);
+    edge.quaternion.copy(mesh.quaternion);
+    edge.position.add(mesh.position.clone().normalize().multiplyScalar(0.01));
+    group.add(edge);
+
+    // shadow
+    const shad = new THREE.Mesh(
+      new THREE.PlaneGeometry(CW+0.15, CH+0.15),
+      new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, side: THREE.DoubleSide })
+    );
+    shad.position.copy(mesh.position);
+    shad.quaternion.copy(mesh.quaternion);
+    shad.position.add(mesh.position.clone().normalize().multiplyScalar(-0.05));
+    group.add(shad);
+
+    floats.push({ phase: Math.random()*Math.PI*2, basePos: new THREE.Vector3(x, y, z), baseQuat: mesh.quaternion.clone() });
+    di++;
+  }
+}
+
+// === DRAG ===
+let dragging = false;
+let prev = { x: 0, y: 0 };
+let vel = { x: 0, y: 0 };
+const target = { x: 0, y: 0 };
+const current = { x: 0, y: 0 };
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+renderer.domElement.addEventListener('pointerdown', e => {
+  dragging = true;
+  prev.x = e.clientX;
+  prev.y = e.clientY;
+  vel.x = 0; vel.y = 0;
+  gsap.killTweensOf(target);
+});
+window.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const dx = e.clientX - prev.x;
+  const dy = e.clientY - prev.y;
+  vel.x = dy * 0.005;
+  vel.y = dx * 0.005;
+  target.x += vel.x;
+  target.y += vel.y;
+  target.x = clamp(target.x, -0.6, 0.6);
+  prev.x = e.clientX;
+  prev.y = e.clientY;
+});
+window.addEventListener('pointerup', () => {
+  dragging = false;
+  if (Math.abs(vel.x) > 0.0005 || Math.abs(vel.y) > 0.0005) {
+    gsap.to(target, {
+      x: target.x + vel.x * 14,
+      y: target.y + vel.y * 14,
+      duration: 2.0,
+      ease: 'power3.out',
+      onUpdate: () => { target.x = clamp(target.x, -0.6, 0.6); }
+    });
+  }
+});
+
+// === RAYCASTER ===
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+
+function onCardClick(e) {
+  if (dragging) return;
+  const p = e.changedTouches ? e.changedTouches[0] : e;
+  pointer.x = (p.clientX / window.innerWidth) * 2 - 1;
+  pointer.y = -(p.clientY / window.innerHeight) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(cardMeshes);
+  if (hits.length) openDetail(hits[0].object.userData);
+}
+
+renderer.domElement.addEventListener('click', onCardClick);
+renderer.domElement.addEventListener('touchend', e => { if (!dragging) onCardClick(e); });
+
+// === DETAIL OVERLAY ===
+let detailOpen = false;
+
+function openDetail(d) {
+  if (detailOpen) return;
+  detailOpen = true;
+  document.getElementById('detailTitle').textContent = d.title;
+  document.getElementById('detailDesc').textContent = d.desc;
+  document.getElementById('detailTag').textContent = d.tag;
+
+  const imgEl = document.getElementById('detailImg');
+  const c = document.createElement('canvas');
+  c.width = 512; c.height = 384;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0, 0, 512, 384);
+  d.colors.forEach((col, i) => g.addColorStop(i/(d.colors.length-1), col));
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 512, 384);
+  for (let i = 0; i < 20; i++) {
+    ctx.beginPath();
+    ctx.arc(Math.random()*512, Math.random()*384, Math.random()*40+8, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.05})`;
+    ctx.fill();
+  }
+  imgEl.style.backgroundImage = `url(${c.toDataURL()})`;
+
+  const overlay = document.getElementById('overlay');
+  const content = overlay.querySelector('.overlay__content');
+  const btn = document.getElementById('closeBtn');
+  gsap.set(content, { opacity: 0, y: 30 });
+  gsap.set(btn, { opacity: 0, y: -10 });
+  overlay.classList.add('active');
+  gsap.to(content, { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out', delay: 0.1 });
+  gsap.to(btn, { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' });
+  btn.onclick = closeDetail;
+}
+
+function closeDetail() {
+  detailOpen = false;
+  const overlay = document.getElementById('overlay');
+  const content = overlay.querySelector('.overlay__content');
+  const btn = document.getElementById('closeBtn');
+  gsap.to(content, { opacity: 0, y: 20, duration: 0.25, ease: 'power2.in' });
+  gsap.to(btn, { opacity: 0, y: -10, duration: 0.2 });
+  gsap.to(overlay, {
+    opacity: 0, duration: 0.35, delay: 0.1, ease: 'power2.in',
+    onComplete: () => {
+      overlay.classList.remove('active');
+      gsap.set(overlay, { opacity: '' });
+      gsap.set(content, { opacity: '', y: '' });
+      gsap.set(btn, { opacity: '', y: '' });
+    }
+  });
+}
+
+document.getElementById('overlay').addEventListener('click', e => { if (e.target===e.currentTarget) closeDetail(); });
+document.addEventListener('keydown', e => { if (e.key==='Escape') closeDetail(); });
+
+// === UI TRACKING ===
+function getActive() {
+  let best = null, bestAngle = Infinity;
+  const dir = new THREE.Vector3(0, 0, -1).applyQuaternion(group.quaternion);
+  for (const m of cardMeshes) {
+    const a = dir.angleTo(m.position.clone().normalize());
+    if (a < bestAngle) { bestAngle = a; best = m; }
+  }
+  return best;
+}
+
+function updateUI() {
+  const a = getActive();
+  if (!a) return;
+  const d = a.userData;
+  document.getElementById('lblIdx').textContent = String(d.idx+1).padStart(2,'0');
+  document.getElementById('lblTitle').textContent = d.title;
+  document.getElementById('lblSub').textContent = d.sub;
+  document.getElementById('currIdx').textContent = String(d.idx+1).padStart(2,'0');
+  document.getElementById('totalCount').textContent = String(DATA.length).padStart(2,'0');
+}
+
+// === GRAIN OVERLAY (small buffer, scaled up) ===
+const grainCanvas = document.getElementById('grain');
+const gctx = grainCanvas.getContext('2d');
+const GRAIN_SIZE = 128;
+let gw = grainCanvas.width = window.innerWidth;
+let gh = grainCanvas.height = window.innerHeight;
+const grainBuf = document.createElement('canvas');
+grainBuf.width = GRAIN_SIZE;
+grainBuf.height = Math.ceil(GRAIN_SIZE * gh / gw);
+const gbCtx = grainBuf.getContext('2d');
+let grainImg = gbCtx.createImageData(GRAIN_SIZE, grainBuf.height);
+
+function drawGrain() {
+  const d = grainImg.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const v = Math.random() * 255;
+    d[i] = v; d[i+1] = v; d[i+2] = v; d[i+3] = 20;
+  }
+  gbCtx.putImageData(grainImg, 0, 0);
+  gctx.imageSmoothingEnabled = false;
+  gctx.drawImage(grainBuf, 0, 0, gw, gh);
+}
+
+// === RESIZE ===
+window.addEventListener('resize', () => {
+  const w = window.innerWidth, h = window.innerHeight;
+  camera.aspect = w/h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  gw = grainCanvas.width = w;
+  gh = grainCanvas.height = h;
+  grainBuf.height = Math.ceil(GRAIN_SIZE * gh / gw);
+  grainImg = gbCtx.createImageData(GRAIN_SIZE, grainBuf.height);
+});
+
+// === ANIMATION ===
+function animate() {
+  requestAnimationFrame(animate);
+
+  current.x += (target.x - current.x) * 0.08;
+  current.y += (target.y - current.y) * 0.08;
+  group.rotation.x = current.x;
+  group.rotation.y = current.y;
+
+  // float cards
+  const t = Date.now() * 0.001;
+  cardMeshes.forEach((m, i) => {
+    const f = floats[i];
+    const offset = Math.sin(t * 0.5 + f.phase) * 0.04;
+    const dir = f.basePos.clone().normalize();
+    m.position.copy(f.basePos).add(dir.multiplyScalar(offset));
+    m.lookAt(0,0,0);
+    m.rotateZ(Math.sin(t * 0.3 + f.phase * 2) * 0.03);
+  });
+
+  stars.rotation.y += 0.00015;
+  stars.rotation.x += 0.00008;
+
+  updateUI();
+  drawGrain();
+  renderer.render(scene, camera);
+}
+animate();
+
+console.log('Spherical Gallery ready — drag to explore, click cards.');
+</script>
+</body>
+</html>
