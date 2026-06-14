@@ -10,7 +10,7 @@
   *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a0a; color: #fff; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; cursor: grab; user-select: none; }
   body:active { cursor: grabbing; }
-  #canvas { position: fixed; inset: 0; z-index: 1; display: block; }
+  #canvas { position: fixed; inset: 0; z-index: 1; display: block; touch-action: none; }
   #grain { position: fixed; inset: 0; z-index: 2; pointer-events: none; mix-blend-mode: overlay; opacity: 0.035; }
   .header { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; padding: 2rem 3rem; pointer-events: none; }
   .header__logo { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.2em; color: rgba(255,255,255,0.5); }
@@ -32,13 +32,30 @@
   .overlay__text p { font-size: 0.85rem; font-weight: 300; line-height: 1.7; color: rgba(255,255,255,0.5); margin-bottom: 2rem; }
   .overlay__tag { display: inline-block; font-size: 0.6rem; font-weight: 500; letter-spacing: 0.2em; color: rgba(255,255,255,0.3); border: 1px solid rgba(255,255,255,0.1); padding: 0.4rem 0.8rem; border-radius: 2px; }
   @media (max-width: 768px) {
-    .header { padding: 1.2rem 1.5rem; }
+    .header { padding: 1rem 1.25rem; }
+    .header__logo { font-size: 0.65rem; }
     .header__nav { display: none; }
-    .counter { left: 1.5rem; bottom: 1.2rem; }
-    .label { right: 1.5rem; bottom: 1.2rem; }
-    .label__title { font-size: 0.9rem; }
+    .counter { left: 1.25rem; bottom: 1rem; font-size: 0.65rem; }
+    .label { right: 1.25rem; bottom: 1rem; }
+    .label__index { font-size: 0.55rem; }
+    .label__title { font-size: 0.8rem; }
+    .label__sub { font-size: 0.6rem; }
     .hint { display: none; }
-    .overlay__content { grid-template-columns: 1fr; gap: 1.5rem; }
+    .overlay__inner { padding: 1rem; }
+    .overlay__close { font-size: 0.85rem; padding: 0.75rem 0; margin-bottom: 1rem; }
+    .overlay__content { grid-template-columns: 1fr; gap: 1rem; }
+    .overlay__text h1 { font-size: 1.35rem; }
+    .overlay__text p { font-size: 0.8rem; }
+  }
+
+  @media (max-width: 480px) {
+    .header { padding: 0.75rem 1rem; }
+    .header__logo { font-size: 0.55rem; }
+    .counter { left: 1rem; bottom: 0.8rem; font-size: 0.55rem; }
+    .label { right: 1rem; bottom: 0.8rem; }
+    .label__title { font-size: 0.7rem; }
+    .overlay__text h1 { font-size: 1.15rem; }
+    .overlay__text p { font-size: 0.75rem; line-height: 1.5; }
   }
 </style>
 </head>
@@ -104,6 +121,14 @@ const DATA = [
   { title: 'Quantum Bloom', sub: 'Generative Art', tag: 'AI', desc: 'Flowers that exist in all states simultaneously. A botanical garden from a parallel universe where physics follows different rules.', colors: ['#0a0a1a','#1a0a2e','#2a0a4e'] },
 ];
 
+// === RESPONSIVE CONFIG ===
+const isMobile = window.innerWidth < 768;
+const isTiny = window.innerWidth < 480;
+const FOV = isMobile ? 70 : 60;
+const SPHERE_R = isTiny ? 9 : isMobile ? 10.5 : 12;
+const CARD_W = isTiny ? 2.6 : isMobile ? 2.9 : 3.2;
+const CARD_H = isTiny ? 3.5 : isMobile ? 3.9 : 4.2;
+
 // === THREE.JS ===
 const canvas = document.getElementById('canvas');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
@@ -113,7 +138,7 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.2;
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 200);
+const camera = new THREE.PerspectiveCamera(FOV, window.innerWidth / window.innerHeight, 0.1, 200);
 camera.position.set(0, 0, 0);
 
 // --- environment sphere ---
@@ -159,7 +184,7 @@ scene.add(stars);
 const group = new THREE.Group();
 scene.add(group);
 
-const R = 12, CW = 3.2, CH = 4.2;
+const R = SPHERE_R, CW = CARD_W, CH = CARD_H;
 
 function makeTexture(colors, w=512, h=384) {
   const c = document.createElement('canvas');
@@ -247,6 +272,7 @@ const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
 
 renderer.domElement.addEventListener('pointerdown', e => {
   dragging = true;
+  renderer.domElement.setPointerCapture(e.pointerId);
   prev.x = e.clientX;
   prev.y = e.clientY;
   vel.x = 0; vel.y = 0;
@@ -292,7 +318,6 @@ function onCardClick(e) {
 }
 
 renderer.domElement.addEventListener('click', onCardClick);
-renderer.domElement.addEventListener('touchend', e => { if (!dragging) onCardClick(e); });
 
 // === DETAIL OVERLAY ===
 let detailOpen = false;
@@ -400,6 +425,9 @@ function drawGrain() {
 // === RESIZE ===
 window.addEventListener('resize', () => {
   const w = window.innerWidth, h = window.innerHeight;
+  const mobile = w < 768;
+  const tiny = w < 480;
+  camera.fov = mobile ? 70 : 60;
   camera.aspect = w/h;
   camera.updateProjectionMatrix();
   renderer.setSize(w, h);
@@ -437,6 +465,11 @@ function animate() {
   renderer.render(scene, camera);
 }
 animate();
+
+renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+
+// Prevent scroll on touch
+document.addEventListener('touchmove', e => { if (e.target === renderer.domElement) e.preventDefault(); }, { passive: false });
 
 console.log('Spherical Gallery ready — drag to explore, click cards.');
 </script>
