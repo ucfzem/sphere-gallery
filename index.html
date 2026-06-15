@@ -49,7 +49,7 @@
   <nav class="header__nav"><span>EXHIBITS</span><span>INFO</span><span>CONTACT</span></nav>
 </header>
 
-<div class="counter"><span id="currIdx">01</span> &mdash; <span id="totalCount">12</span></div>
+<div class="counter"><span id="currIdx">01</span> &mdash; <span id="totalCount">36</span></div>
 
 <div class="label">
   <div class="label__index" id="lblIdx">01</div>
@@ -90,18 +90,42 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 
 const DATA = [
-  { title: 'Eternal Void', sub: 'Digital Art', tag: '3D', desc: 'An exploration of infinite space and the beauty of nothingness. This piece invites contemplation of the vast unknown beyond our perception.', colors: ['#0a0a1a','#1a1a2e','#16213e'] },
-  { title: 'Neon Genesis', sub: 'Photography', tag: 'MOTION', desc: 'Urban landscapes transformed through electric light. Capturing the moment when day surrenders to the neon pulse of the city.', colors: ['#1a0a2e','#2d1b69','#11998e'] },
-  { title: 'Concrete Horizons', sub: 'Architecture', tag: '3D', desc: 'Brutalist structures reimagined as monuments to a forgotten future. Geometry meets atmosphere in this brutalist dreamscape.', colors: ['#1a1a1a','#2d2d2d','#4a4a4a'] },
-  { title: 'Liquid Mercury', sub: 'Sculpture', tag: 'EXPERIENCE', desc: 'Fluid forms frozen in time. A study of motion and material, where metal behaves like water and gravity is merely a suggestion.', colors: ['#0d1117','#161b22','#30363d'] },
-  { title: 'Chromatic Aberration', sub: 'Mixed Media', tag: 'WEBSITE', desc: 'When perception fractures and color bleeds beyond boundaries. An immersive journey through the spectrum of distorted reality.', colors: ['#120a1a','#2a0a3a','#4a1a6a'] },
-  { title: 'Zero Gravity', sub: 'Installation', tag: '3D', desc: 'Defying terrestrial bounds in a dance of weightless forms. Each element suspended in perfect equilibrium within the void.', colors: ['#0a1a1a','#0a2a2a','#1a3a3a'] },
-  { title: 'Phantom Signal', sub: 'Audio Visual', tag: 'MOTION', desc: 'Transmissions from the edge of perception. Frequencies beyond human hearing visualized as cascading light architecture.', colors: ['#1a0a0a','#2a1a0a','#3a2a1a'] },
-  { title: 'Digital Petrichor', sub: 'Generative Art', tag: 'AI', desc: 'The scent of rain on dry earth, translated through algorithmic poetry. A computational meditation on natural phenomena.', colors: ['#0a1a0a','#0a2a1a','#1a3a2a'] },
-  { title: 'Obsidian Flow', sub: 'Sculpture', tag: 'EXPERIENCE', desc: 'Volcanic glass frozen in perpetual motion. Light plays across razor-sharp surfaces in an endless display of geological time.', colors: ['#0a0a0a','#1a1a1a','#2a1a1a'] },
-  { title: 'Solar Wind', sub: 'Digital Art', tag: '3D', desc: 'Charged particles from a distant star collide with atmosphere in a symphony of light. The aurora reimagined through computational lens.', colors: ['#0a1a2e','#1a2a4e','#2a3a6e'] },
-  { title: 'Terminal Velocity', sub: 'Film', tag: 'MOTION', desc: 'The final moment before impact, stretched into eternity. A meditation on speed, momentum, and the beauty of inevitable collisions.', colors: ['#1a0a0a','#2a1a1a','#1a1a2a'] },
-  { title: 'Quantum Bloom', sub: 'Generative Art', tag: 'AI', desc: 'Flowers that exist in all states simultaneously. A botanical garden from a parallel universe where physics follows different rules.', colors: ['#0a0a1a','#1a0a2e','#2a0a4e'] },
+  { title: 'Coucher de soleil sur le Boulevard Pasteur', sub: 'Paysage', tag: 'LANDSCAPE', desc: 'Le soleil plonge derrière l\'horizon de Tanger, embrasant le boulevard Pasteur de teintes dorées et pourpres.', colors: ['#2a1a0a','#5a2a1a','#8a4a2a'], img: 'coucher-soleil-boulevard-pasteur.jpg' },
+  { title: 'Terrasse de café rue pavée bleue', sub: 'Paysage', tag: 'STREET', desc: 'Une terrasse animée sur une rue pavée bleue. L\'art de vivre méditerranéen dans toute sa simplicité.', colors: ['#1a1a2a','#2a3a4a','#4a5a6a'], img: 'terrasse-cafe-rue-pavee-bleu.jpg' },
+  { title: 'Église Bethelkerk', sub: 'Architecture', tag: 'ARCHITECTURE', desc: 'Le clocher en brique de l\'église Bethelkerk se dresse fièrement dans le ciel hollandais.', colors: ['#2a1a1a','#3a2a1a','#5a3a1a'], img: 'eglise-bethelkerk-clocher-brique.jpg' },
+  { title: 'Cycliste costume fleurs multicolore', sub: 'Portrait', tag: 'PORTRAIT', desc: 'Un cycliste paré d\'un costume fleuri multicolore, éclat de joie dans le paysage urbain.', colors: ['#2a1a2a','#4a2a3a','#6a3a5a'], img: 'cycliste-costume-fleurs-multicolore.jpg' },
+  { title: 'Chevaux galop poussière', sub: 'Paysage', tag: 'MOTION', desc: 'Galop sauvage soulevant un nuage de poussière dorée. L\'énergie brute du mouvement capturée en pleine course.', colors: ['#3a2a1a','#5a3a1a','#7a5a2a'], img: 'chevaux-trait-galop-poussiere.jpg' },
+  { title: 'Rue immeuble Tanger ciel bleu', sub: 'Paysage', tag: 'STREET', desc: 'Une rue de Tanger bordée d\'immeubles sous un ciel d\'azur. La Méditerranée à chaque coin de rue.', colors: ['#1a2a3a','#2a4a5a','#3a6a7a'], img: 'rue-immeuble-tanger-ciel-bleu.jpg' },
+  { title: 'Chevaux trait attelage', sub: 'Paysage', tag: 'NATURE', desc: 'Attelage traditionnel dans les plaines du Nord. La puissance et la grâce des chevaux de trait.', colors: ['#2a2a1a','#4a3a2a','#5a4a3a'], img: 'chevaux-trait-attelage-marron.jpg' },
+  { title: 'Famille vélo électrique façade jaune', sub: 'Portrait', tag: 'PORTRAIT', desc: 'Famille néerlandaise sur vélo électrique devant une façade jaune. Le quotidien moderne immortalisé avec tendresse.', colors: ['#2a2a1a','#4a4a2a','#6a5a3a'], img: 'famille-velo-electrique-facade-jaune.jpg' },
+  { title: 'Cycliste déguisé grenouille verte', sub: 'Portrait', tag: 'PORTRAIT', desc: 'Un cycliste déguisé en grenouille verte lors d\'un carnaval. L\'humour et la couleur animent les rues.', colors: ['#1a3a1a','#2a5a2a','#4a7a3a'], img: 'cycliste-deguise-grenouille-verte.jpg' },
+  { title: 'Homme assis banc quai', sub: 'Portrait', tag: 'PORTRAIT', desc: 'Un homme seul sur un banc face à l\'eau. Moment de contemplation dans la vie portuaire.', colors: ['#1a1a2a','#2a2a3a','#3a3a4a'], img: 'homme-assis-banc-quai.jpg' },
+  { title: 'Galets plage gros plan multicolore', sub: 'Nature', tag: 'NATURE', desc: 'Gros plan sur des galets aux couleurs bigarrées, façonnés par les vagues de la Méditerranée.', colors: ['#2a2a2a','#3a3a3a','#4a3a2a'], img: 'galets-plage-gros-plan-multicolore.jpg' },
+  { title: 'Galets plage vue haut multicolore', sub: 'Nature', tag: 'NATURE', desc: 'Vue plongeante sur un tapis de galets multicolores. La plage comme une palette d\'artiste.', colors: ['#2a2a2a','#3a3a2a','#4a3a2a'], img: 'galets-plage-vue-haut-multicolore.jpg' },
+  { title: 'Porsche 911 montagne blanche', sub: 'Automobile', tag: 'ARCHITECTURE', desc: 'Lignes intemporelles de la Porsche 911 face aux montagnes blanches. Un contraste de précision et de nature.', colors: ['#1a1a2a','#2a2a4a','#4a4a6a'], img: 'porsche-911-montagne-blanche.jpg' },
+  { title: 'Combi Volkswagen rue pavée rouge', sub: 'Automobile', tag: 'STREET', desc: 'Un combi Volkswagen rouge sur une rue pavée. L\'esprit libre des road trips d\'antan.', colors: ['#2a1a1a','#4a2a1a','#6a3a1a'], img: 'combi-volkswagen-rue-pavee-rouge.jpg' },
+  { title: 'Bateaux pontons quai orange', sub: 'Paysage', tag: 'LANDSCAPE', desc: 'Les bateaux se balancent doucement sur les pontons, baignés par la lumière orange du couchant.', colors: ['#2a1a0a','#4a2a1a','#6a3a2a'], img: 'bateaux-pontons-quai-orange.jpg' },
+  { title: 'Femme costume château rouge', sub: 'Portrait', tag: 'PORTRAIT', desc: 'Une femme en costume élégant devant un château rouge. Portrait d\'un jour de fête.', colors: ['#2a1a1a','#4a2a2a','#5a3a3a'], img: 'femme-costume-chateau-rouge.jpg' },
+  { title: 'Moto garée terrasse chrome rouge', sub: 'Automobile', tag: 'STREET', desc: 'Une moto chromée garée devant une terrasse. Le reflet du rouge sur le chrome attire l\'œil.', colors: ['#1a1a1a','#3a1a1a','#5a2a1a'], img: 'moto-garee-terrasse-chrome-rouge.jpg' },
+  { title: 'Moto route circule bleue', sub: 'Automobile', tag: 'MOTION', desc: 'Une moto filant sur la route bleutée. La vitesse figée dans un instant de liberté.', colors: ['#1a1a2a','#2a2a3a','#3a3a5a'], img: 'moto-route-circule-bleue.jpg' },
+  { title: 'Moto route conducteur blanche', sub: 'Automobile', tag: 'MOTION', desc: 'Un conducteur en plein trajet, la route blanche défilant sous les roues.', colors: ['#1a1a1a','#2a2a2a','#3a3a3a'], img: 'moto-route-conducteur-blanche.jpg' },
+  { title: 'Moulin vent pelouse rouge', sub: 'Paysage', tag: 'LANDSCAPE', desc: 'Un moulin à vent hollandais se dresse sur la pelouse, ses ailes rouges tournant dans le vent.', colors: ['#1a2a1a','#2a3a2a','#4a2a1a'], img: 'moulin-vent-pelouse-rouge.jpg' },
+  { title: 'Moulin vent tour relais brique', sub: 'Architecture', tag: 'ARCHITECTURE', desc: 'Un moulin en brique servant de tour relais. L\'architecture utilitaire du patrimoine néerlandais.', colors: ['#2a1a1a','#3a2a1a','#4a3a2a'], img: 'moulin-vent-tour-relais-brique.jpg' },
+  { title: 'Moulin vent village blanc', sub: 'Paysage', tag: 'LANDSCAPE', desc: 'Un moulin blanc surplombant un village paisible. La campagne hollandaise dans toute sa sérénité.', colors: ['#1a1a2a','#2a2a3a','#3a3a4a'], img: 'moulin-vent-village-blanc.jpg' },
+  { title: 'Port bateaux tour église bleu', sub: 'Paysage', tag: 'LANDSCAPE', desc: 'Le port avec ses bateaux et la tour de l\'église qui veille au loin, sous un ciel bleu.', colors: ['#1a2a3a','#2a3a4a','#3a4a5a'], img: 'port-bateaux-tour-eglise-bleu.jpg' },
+  { title: 'Schermerhorne', sub: 'Paysage', tag: 'LANDSCAPE', desc: 'Les polders hollandais sous un ciel infini. La ligne d\'horizon s\'étend à perte de vue.', colors: ['#1a2a3a','#2a4a5a','#5a7a6a'], img: 'Schermerhorne_copy_793x512.jpg' },
+  { title: 'Voilier navigue port bois rouge', sub: 'Paysage', tag: 'LANDSCAPE', desc: 'Un voilier rouge navigue dans le port, ses reflets dansant sur l\'eau calme.', colors: ['#2a1a1a','#3a2a1a','#4a3a2a'], img: 'voilier-navigue-port-bois-rouge.jpg' },
+  { title: 'Avion léger rouge blanc piste', sub: 'Transport', tag: 'ARCHITECTURE', desc: 'Un avion léger rouge et blanc sur la piste. L\'appel de l\'aventure et du ciel ouvert.', colors: ['#1a1a1a','#2a2a2a','#4a2a1a'], img: 'avion-leger-rouge-blanc-piste.jpg' },
+  { title: 'Bethelkerk clocher brique ciel bleu', sub: 'Architecture', tag: 'ARCHITECTURE', desc: 'Le clocher en brique de Bethelkerk se découpe dans le ciel bleu. Foi et patrimoine.', colors: ['#1a2a3a','#2a3a4a','#4a2a1a'], img: 'bethelkerk-clocher-brique-ciel-bleu.jpg' },
+  { title: 'Cyclistes course route maillots colorés', sub: 'Sport', tag: 'MOTION', desc: 'Le peloton coloré des cyclistes en pleine course. L\'effort et la camaraderie sur la route.', colors: ['#1a1a2a','#2a2a3a','#4a2a3a'], img: 'cyclistes-course-route-maillots-colores.jpg' },
+  { title: 'Dromadaires zoo debout marron', sub: 'Nature', tag: 'NATURE', desc: 'Des dromadaires bruns se tiennent debout au zoo. Un morceau de désert au cœur des Pays-Bas.', colors: ['#2a2a1a','#3a3a2a','#4a3a1a'], img: 'dromadaires-zoo-debout-marron.jpg' },
+  { title: 'Fiat 1200 cabriolet rouge rue pavée', sub: 'Automobile', tag: 'STREET', desc: 'Une Fiat 1200 cabriolet rouge sur une rue pavée. Le charme italien dans les rues de Goes.', colors: ['#2a1a1a','#4a2a1a','#6a3a2a'], img: 'fiat-1200-cabriolet-rouge-rue-pavee.jpg' },
+  { title: 'Ford modèle A vert route', sub: 'Automobile', tag: 'STREET', desc: 'Une Ford modèle A verte sur la route. Un morceau d\'histoire automobile préservé avec soin.', colors: ['#1a2a1a','#2a3a2a','#3a4a2a'], img: 'ford-modele-a-vert-route.jpg' },
+  { title: 'Ford Taunus bleu rue pavée', sub: 'Automobile', tag: 'STREET', desc: 'Une Ford Taunus bleue stationnée rue pavée. L\'élégance sobre des voitures d\'époque.', colors: ['#1a1a2a','#2a2a4a','#3a3a5a'], img: 'ford-taunus-bleu-rue-pavee.jpg' },
+  { title: 'Hudson berline jaune place pavée', sub: 'Automobile', tag: 'STREET', desc: 'Une Hudson berline jaune vif sur une place pavée. Une icône américaine en terre néerlandaise.', colors: ['#2a2a1a','#4a3a1a','#6a5a2a'], img: 'hudson-berline-jaune-place-pavee.jpg' },
+  { title: 'Motocross saut air rouge bleu', sub: 'Sport', tag: 'MOTION', desc: 'Un motocross s\'envole dans les airs, rouge et bleu suspendu entre ciel et terre.', colors: ['#1a1a2a','#2a1a1a','#3a2a3a'], img: 'motocross-saut-air-rouge-bleu.jpg' },
+  { title: 'Peloton cyclistes route haie verte', sub: 'Sport', tag: 'MOTION', desc: 'Le peloton des cyclistes longe une haie verte. La campagne néerlandaise comme décor de course.', colors: ['#1a2a1a','#2a3a2a','#3a4a3a'], img: 'peloton-cyclistes-route-haie-verte.jpg' },
+  { title: 'Tigre couché rugit herbe', sub: 'Nature', tag: 'NATURE', desc: 'Un tigre couché dans l\'herbe, rugissant. La puissance sauvage figée dans un instant.', colors: ['#1a1a1a','#2a2a1a','#3a2a1a'], img: 'tigre-couche-rugit-herbe.jpg' },
 ];
 
 // === THREE.JS ===
@@ -161,39 +185,37 @@ scene.add(group);
 
 const R = 12, CW = 3.2, CH = 4.2;
 
-function makeTexture(colors, w=512, h=384) {
+function makeTexture(d, w=512, h=384) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
   const ctx = c.getContext('2d');
   const g = ctx.createLinearGradient(0, 0, w, h);
-  colors.forEach((col, i) => g.addColorStop(i/(colors.length-1), col));
+  d.colors.forEach((col, i) => g.addColorStop(i/(d.colors.length-1), col));
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, w, h);
-  for (let i = 0; i < 8; i++) {
-    ctx.beginPath();
-    ctx.arc(Math.random()*w, Math.random()*h, Math.random()*60+15, 0, Math.PI*2);
-    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.04})`;
-    ctx.fill();
-  }
-  for (let i = 0; i < 30; i++) {
-    ctx.beginPath();
-    ctx.arc(Math.random()*w, Math.random()*h, Math.random()*2+0.3, 0, Math.PI*2);
-    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.12})`;
-    ctx.fill();
-  }
   const t = new THREE.CanvasTexture(c);
   t.needsUpdate = true;
+  if (d.img) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      ctx.drawImage(img, 0, 0, w, h);
+      t.needsUpdate = true;
+    };
+    img.src = d.img;
+  }
   return t;
 }
 
 const cardMeshes = [];
 const floats = [];
 const lats = [-0.35, 0, 0.35];
+const itemsPerRow = Math.ceil(DATA.length / 3);
 let di = 0;
 
 for (let row = 0; row < 3 && di < DATA.length; row++) {
   const lat = lats[row];
-  const n = row === 1 ? DATA.length : 8;
+  const n = Math.min(itemsPerRow, DATA.length - di);
   const step = (Math.PI*2)/n;
   for (let i = 0; i < n && di < DATA.length; i++) {
     const lon = i*step + (row%2)*step*0.5;
@@ -203,12 +225,12 @@ for (let row = 0; row < 3 && di < DATA.length; row++) {
     const d = DATA[di];
 
     // card
-    const tex = makeTexture(d.colors);
+    const tex = makeTexture(d);
     const mesh = new THREE.Mesh(new THREE.PlaneGeometry(CW, CH), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, transparent: true }));
     mesh.position.set(x, y, z);
     mesh.lookAt(0,0,0);
     mesh.rotateZ((Math.random()-0.5)*0.06);
-    mesh.userData = { idx: di, title: d.title, sub: d.sub, tag: d.tag, desc: d.desc, colors: d.colors };
+    mesh.userData = { idx: di, title: d.title, sub: d.sub, tag: d.tag, desc: d.desc, colors: d.colors, img: d.img };
     group.add(mesh);
     cardMeshes.push(mesh);
 
@@ -305,20 +327,37 @@ function openDetail(d) {
   document.getElementById('detailTag').textContent = d.tag;
 
   const imgEl = document.getElementById('detailImg');
-  const c = document.createElement('canvas');
-  c.width = 512; c.height = 384;
-  const ctx = c.getContext('2d');
-  const g = ctx.createLinearGradient(0, 0, 512, 384);
-  d.colors.forEach((col, i) => g.addColorStop(i/(d.colors.length-1), col));
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 512, 384);
-  for (let i = 0; i < 20; i++) {
-    ctx.beginPath();
-    ctx.arc(Math.random()*512, Math.random()*384, Math.random()*40+8, 0, Math.PI*2);
-    ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.05})`;
-    ctx.fill();
+  if (d.img) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = 512; c.height = 384;
+      const ctx = c.getContext('2d');
+      const g = ctx.createLinearGradient(0, 0, 512, 384);
+      d.colors.forEach((col, i) => g.addColorStop(i/(d.colors.length-1), col));
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 512, 384);
+      ctx.drawImage(img, 0, 0, 512, 384);
+      imgEl.style.backgroundImage = `url(${c.toDataURL()})`;
+    };
+    img.src = d.img;
+  } else {
+    const c = document.createElement('canvas');
+    c.width = 512; c.height = 384;
+    const ctx = c.getContext('2d');
+    const g = ctx.createLinearGradient(0, 0, 512, 384);
+    d.colors.forEach((col, i) => g.addColorStop(i/(d.colors.length-1), col));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 512, 384);
+    for (let i = 0; i < 20; i++) {
+      ctx.beginPath();
+      ctx.arc(Math.random()*512, Math.random()*384, Math.random()*40+8, 0, Math.PI*2);
+      ctx.fillStyle = `rgba(255,255,255,${Math.random()*0.05})`;
+      ctx.fill();
+    }
+    imgEl.style.backgroundImage = `url(${c.toDataURL()})`;
   }
-  imgEl.style.backgroundImage = `url(${c.toDataURL()})`;
 
   const overlay = document.getElementById('overlay');
   const content = overlay.querySelector('.overlay__content');
